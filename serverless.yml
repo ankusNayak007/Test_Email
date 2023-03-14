@@ -1,0 +1,49 @@
+
+
+service: s3-trigger
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  stage: playground
+  # region: ap-south-1
+  runtime: python3.8
+  # profile: ankus_serverless
+
+
+functions:
+  handler:
+    description: This Lambda function will (trigger) send a email when s3 bucket events occur.
+    handler: handler.handler
+    events:
+      - s3:
+          bucket: s3-trigger-event-bucket
+          event: s3:ObjectCreated:Put
+          rules:
+          #   - prefix: error
+            - suffix: .json
+    
+    iamRoleStatementsName: 'gc-467-role-new'
+    iamRoleStatements:
+      - Effect: 'Allow'
+        Action:
+          - "s3:*"
+        Resource:
+          - 'arn:aws:s3:::s3-trigger-event-bucket'
+          - 'arn:aws:s3:::s3-trigger-event-bucket/*'
+      - Effect: 'Allow'
+        Action:
+          - ses:*
+        Resource: "*"
+
+    package:
+      individually: true
+      patterns:
+        - '!/**'
+        # - 'dist/**'
+        - '!node_modules/**'
+
+
+plugins:
+  - serverless-iam-roles-per-function
